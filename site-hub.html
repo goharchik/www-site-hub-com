@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#4f46e5">
+<title>Site.hub — хостинг сайтов через GitHub</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='15' fill='%234f46e5'/%3E%3Cg fill='none' stroke='%23fff' stroke-width='4' stroke-linecap='round'%3E%3Ccircle cx='32' cy='32' r='16'/%3E%3Cpath d='M16 32h32M32 16c6 6 6 26 0 32M32 16c-6 6-6 26 0 32'/%3E%3C/g%3E%3C/svg%3E">
+<style>
+:root{
+  --ind:#4f46e5;--ind-d:#4338ca;--ind-dd:#3730a3;--ind-l:#eef0ff;--ind-l2:#e0e4ff;
+  --blue:#2563eb;--ink:#101633;--txt:#232b47;--dim:#5a6485;--mute:#8a93b2;--faint:#aab2cc;
+  --line:#e6e9f5;--line2:#d6dbee;--card:#fff;--bg:#f3f5fd;
+  --ok:#16a34a;--okl:#e7f6ed;--err:#e11d48;--errl:#fdeaee;--warn:#d97706;--warnl:#fdf0dd;
+  --ease:cubic-bezier(.22,1,.36,1);--spring:cubic-bezier(.34,1.56,.64,1);
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Roboto Mono",monospace;
+  --sh:0 1px 3px rgba(31,41,99,.05),0 8px 24px rgba(79,70,229,.07);
+  --st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--txt)}
+body{font:400 15.5px/1.6 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%;min-height:100dvh;overflow-x:hidden}
+button{font:inherit;cursor:pointer;border:0;background:none;color:inherit;-webkit-tap-highlight-color:transparent}
+svg{display:block}
+a{color:var(--ind)}
+::selection{background:var(--ind);color:#fff}
+.mono{font-family:var(--mono)}
+[hidden]{display:none!important}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:var(--line2);border-radius:9px}
+input,textarea,select{font:inherit}
+
+/* top bar */
+.top{position:sticky;top:0;z-index:20;background:rgba(243,245,253,.86);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line);padding:calc(var(--st) + 10px) 14px 10px}
+.top-in{max-width:1000px;margin:0 auto;display:flex;align-items:center;gap:10px}
+.brand{display:flex;align-items:center;gap:9px;font-weight:800;font-size:18px;color:var(--ink);letter-spacing:-.01em}
+.brand .bi{width:32px;height:32px;border-radius:10px;background:linear-gradient(145deg,#6366f1,#4338ca);display:grid;place-items:center;box-shadow:0 4px 12px rgba(79,70,229,.3)}
+.brand .bi svg{width:19px;height:19px;color:#fff}
+.brand b{color:var(--ind)}
+.sp{flex:1}
+.ubtn{display:flex;align-items:center;gap:8px;height:38px;padding:0 6px 0 12px;border-radius:99px;border:1px solid var(--line2);background:#fff;font-size:13.5px;color:var(--txt);font-weight:600}
+.ubtn img{width:26px;height:26px;border-radius:50%;background:var(--ind-l)}
+.ibtn{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;color:var(--dim);background:#fff;border:1px solid var(--line2);transition:.18s}
+.ibtn:hover{color:var(--ind);border-color:var(--ind-l2)}
+.ibtn svg{width:19px;height:19px}
+
+.wrap{max-width:1000px;margin:0 auto;padding:18px 14px calc(var(--sb) + 70px)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:18px;box-shadow:var(--sh)}
+.hero{text-align:center;padding:30px 18px;animation:rise .6s var(--ease) both}
+.hero .hi{width:66px;height:66px;margin:0 auto 16px;border-radius:20px;background:linear-gradient(145deg,#6366f1,#4338ca);display:grid;place-items:center;box-shadow:0 12px 28px rgba(79,70,229,.32)}
+.hero .hi svg{width:36px;height:36px;color:#fff}
+.hero h1{font-size:27px;font-weight:820;letter-spacing:-.02em;margin:0 0 8px;color:var(--ink)}
+.hero p{color:var(--dim);max-width:460px;margin:0 auto 4px;font-size:14.5px}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+label.fld{display:block;font-size:12.5px;color:var(--dim);font-weight:600;margin:14px 0 6px}
+input[type=text],input[type=password],input[type=url],select,textarea{width:100%;background:#fff;border:1.5px solid var(--line2);border-radius:13px;color:var(--ink);font-size:15px;padding:12px 13px;outline:none;transition:.18s}
+input:focus,select:focus,textarea:focus{border-color:var(--ind);box-shadow:0 0 0 3.5px var(--ind-l)}
+input.mono,textarea.mono{font-family:var(--mono);font-size:14px}
+textarea{resize:vertical;min-height:80px}
+.hint{font-size:12px;color:var(--mute);margin-top:5px;line-height:1.5}
+.hint.err{color:var(--err)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;height:46px;padding:0 18px;border-radius:13px;background:var(--ind);color:#fff;font-weight:650;font-size:15px;transition:transform .2s var(--spring),background .2s,box-shadow .2s;box-shadow:0 6px 16px rgba(79,70,229,.26)}
+.btn:active{transform:scale(.97)}
+.btn:hover{background:var(--ind-d)}
+.btn:disabled{opacity:.5;pointer-events:none;box-shadow:none}
+.btn svg{width:18px;height:18px}
+.btn.ghost{background:#fff;color:var(--ind);border:1.5px solid var(--line2);box-shadow:none}
+.btn.ghost:hover{border-color:var(--ind);background:var(--ind-l)}
+.btn.sm{height:38px;padding:0 14px;font-size:13.5px;border-radius:11px}
+.btn.block{width:100%}
+.btn.big{height:54px;font-size:16px;border-radius:16px}
+.btn.ok{background:var(--ok);box-shadow:0 6px 16px rgba(22,163,74,.26)}.btn.ok:hover{background:#15803d}
+.btn.danger{background:#fff;color:var(--err);border:1.5px solid #f6c9d2;box-shadow:none}.btn.danger:hover{background:var(--errl)}
+.spin{width:15px;height:15px;border:2px solid var(--ind-l2);border-top-color:var(--ind);border-radius:50%;animation:sp .8s linear infinite}
+.spin.w{border-color:rgba(255,255,255,.35);border-top-color:#fff}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* dashboard */
+.dhead{display:flex;align-items:center;justify-content:space-between;margin:4px 2px 14px;gap:10px}
+.dhead h2{font-size:20px;font-weight:780;color:var(--ink);margin:0}
+.dhead .cnt{font-size:12.5px;color:var(--mute);font-weight:500}
+.newsite{display:flex;align-items:center;gap:14px;width:100%;padding:16px;border-radius:18px;background:linear-gradient(135deg,#4f46e5,#4338ca);color:#fff;box-shadow:0 10px 26px rgba(79,70,229,.3);margin-bottom:16px;transition:transform .2s var(--spring)}
+.newsite:active{transform:scale(.99)}
+.newsite .pl{width:46px;height:46px;border-radius:14px;background:rgba(255,255,255,.18);display:grid;place-items:center;flex:none}
+.newsite .pl svg{width:24px;height:24px}
+.newsite .t{flex:1;text-align:left}
+.newsite .t b{display:block;font-size:16.5px;font-weight:720}
+.newsite .t span{font-size:12.5px;opacity:.85}
+.newsite .ar svg{width:20px;height:20px;opacity:.8}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.site{border:1px solid var(--line);border-radius:18px;background:#fff;overflow:hidden;box-shadow:var(--sh);animation:rise .5s var(--ease) both;transition:transform .2s,box-shadow .2s}
+.site:hover{transform:translateY(-2px);box-shadow:0 8px 26px rgba(79,70,229,.12)}
+.site .thumb{height:118px;background:var(--ind-l);position:relative;overflow:hidden;border-bottom:1px solid var(--line)}
+.site .thumb iframe{position:absolute;top:0;left:0;width:200%;height:236px;border:0;transform:scale(.5);transform-origin:top left;pointer-events:none;background:#fff}
+.site .thumb .ph{position:absolute;inset:0;display:grid;place-items:center;color:var(--ind);background:linear-gradient(135deg,var(--ind-l),#fff)}
+.site .thumb .ph svg{width:40px;height:40px;opacity:.5}
+.site .thumb .st{position:absolute;top:8px;right:8px;display:flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:99px;background:rgba(255,255,255,.95);box-shadow:0 2px 6px rgba(0,0,0,.1)}
+.site .thumb .st .dot{width:6px;height:6px;border-radius:50%;background:var(--ok)}
+.site .thumb .st.build .dot{background:var(--warn);animation:pulse 1.2s infinite}
+@keyframes pulse{50%{opacity:.4}}
+.site .body{padding:12px 13px}
+.site .nm{font-weight:720;font-size:15px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.site .url{font:11.5px var(--mono);color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.site .acts{display:flex;gap:7px;margin-top:11px}
+.site .acts .btn{flex:1}
+.empty{text-align:center;color:var(--mute);padding:40px 16px;font-size:14px;grid-column:1/-1}
+.empty svg{width:40px;height:40px;margin:0 auto 12px;opacity:.4;color:var(--ind)}
+
+.note{display:flex;gap:11px;align-items:flex-start;border-radius:14px;padding:13px;font-size:13.5px;line-height:1.55}
+.note svg{width:19px;height:19px;flex:none;margin-top:1px}
+.note.info{background:var(--ind-l);color:var(--ind-dd)}.note.info svg{color:var(--ind)}
+.note.warn{background:var(--warnl);color:#92560a}.note.warn svg{color:var(--warn)}
+.note.ok{background:var(--okl);color:#14612f}.note.ok svg{color:var(--ok)}
+.note b{color:var(--ink)}
+
+/* sheet */
+.sheet-bg{position:fixed;inset:0;z-index:40;background:rgba(16,22,51,.42);backdrop-filter:blur(3px);opacity:0;transition:opacity .4s var(--ease)}
+.sheet-bg.show{opacity:1}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:41;max-height:94dvh;display:flex;flex-direction:column;background:#fff;border-radius:24px 24px 0 0;transform:translateY(103%);transition:transform .5s var(--ease),opacity .3s var(--ease);padding-bottom:var(--sb);box-shadow:0 -14px 50px rgba(16,22,51,.22)}
+.sheet.show{transform:none}
+.sheet.stacked{opacity:0;pointer-events:none}
+.sheet-bg.hidebg{opacity:0}
+.sheet .grab{width:42px;height:5px;border-radius:9px;background:var(--line2);margin:9px auto 0;flex:none}
+.sh-head{display:flex;align-items:center;gap:10px;padding:10px 14px 10px 18px;flex:none;border-bottom:1px solid var(--line)}
+.sh-head h3{flex:1;min-width:0;font-size:18px;font-weight:760;color:var(--ink);margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sh-body{overflow-y:auto;padding:16px;overscroll-behavior:contain}
+@media(min-width:720px){
+  .sheet{left:50%;right:auto;top:50%;bottom:auto;width:600px;max-height:90dvh;border-radius:22px;transform:translate(-50%,-46%) scale(.97);opacity:0;transition:transform .45s var(--ease),opacity .3s}
+  .sheet.show{transform:translate(-50%,-50%);opacity:1}
+  .sheet .grab{display:none}
+}
+.tabs{display:flex;gap:4px;background:var(--ind-l);padding:4px;border-radius:13px;margin-bottom:14px}
+.tabs button{flex:1;height:38px;border-radius:9px;color:var(--dim);font-size:13.5px;font-weight:600;transition:.2s;padding:0 4px;white-space:nowrap}
+.tabs button.on{background:#fff;color:var(--ind);box-shadow:0 2px 6px rgba(79,70,229,.14)}
+.pane{display:none;animation:rise .3s var(--ease) both}.pane.on{display:block}
+.tpl-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tpl{border:1.5px solid var(--line2);border-radius:14px;overflow:hidden;cursor:pointer;background:#fff;transition:.18s}
+.tpl.on{border-color:var(--ind);box-shadow:0 0 0 2px var(--ind) inset}
+.tpl .pv{height:92px;border-bottom:1px solid var(--line);overflow:hidden;position:relative;background:#fff}
+.tpl .pv iframe{position:absolute;top:0;left:0;width:300%;height:276px;border:0;transform:scale(.3333);transform-origin:top left;pointer-events:none}
+.tpl .lb{padding:8px 10px;font-size:12.5px;font-weight:650;color:var(--ink)}
+.prev{border:1px solid var(--line2);border-radius:14px;overflow:hidden;margin-top:12px;background:#fff}
+.prev iframe{width:100%;height:300px;border:0;display:block}
+.drop{border:2px dashed var(--line2);border-radius:14px;padding:22px 14px;text-align:center;cursor:pointer;background:var(--ind-l);transition:.2s}
+.drop.over{border-color:var(--ind);background:var(--ind-l2)}
+.drop svg{width:30px;height:30px;margin:0 auto 9px;color:var(--ind)}
+.drop b{display:block;color:var(--ink)}.drop span{font-size:12px;color:var(--dim)}
+.flist{margin-top:10px;display:flex;flex-direction:column;gap:6px;max-height:200px;overflow:auto}
+.frow{display:flex;align-items:center;gap:9px;padding:8px 10px;border:1px solid var(--line);border-radius:11px;font-size:13px;background:#fff}
+.frow .nm{flex:1;min-width:0;font:12px var(--mono);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.frow .ic{width:30px;height:30px;border-radius:8px;background:var(--ind-l);color:var(--ind);display:grid;place-items:center;font:800 8px var(--mono);text-transform:uppercase;flex:none}
+.frow .sz{font-size:11px;color:var(--mute)}
+.frow .x{width:26px;height:26px;border-radius:7px;background:var(--ind-l);display:grid;place-items:center;color:var(--dim)}
+.frow .x svg{width:13px;height:13px}
+.frow.file{cursor:pointer}.frow.file:hover{border-color:var(--ind-l2);background:var(--ind-l)}
+.steps-run{display:flex;flex-direction:column;gap:2px;margin:6px 0}
+.srun{display:flex;align-items:center;gap:12px;padding:9px 6px;border-radius:10px;font-size:14.5px;color:var(--mute)}
+.srun.on{color:var(--ink);background:var(--ind-l)}.srun.done{color:var(--txt)}
+.srun .si{width:24px;height:24px;border-radius:50%;flex:none;display:grid;place-items:center;border:2px solid var(--line2)}
+.srun.done .si{background:var(--ok);border-color:var(--ok);color:#fff}
+.srun.on .si{border-color:var(--ind)}
+.srun.err .si{background:var(--err);border-color:var(--err);color:#fff}
+.srun .si svg{width:13px;height:13px}
+.srun .sx{flex:1;min-width:0}
+.srun .sx small{display:block;font-size:11.5px;color:var(--mute)}
+.livebox{text-align:center;padding:4px 0}
+.livebox .big-ok{width:64px;height:64px;margin:0 auto 10px;border-radius:50%;background:var(--okl);display:grid;place-items:center;color:var(--ok);animation:pop .5s var(--spring) both}
+.livebox .big-ok svg{width:34px;height:34px}
+@keyframes pop{from{opacity:0;transform:scale(.6)}}
+.livebox h3{margin:0 0 4px;font-size:19px;color:var(--ink)}
+.urlbox{display:flex;align-items:center;gap:8px;border:1.5px solid var(--line2);border-radius:12px;padding:10px 12px;margin:14px 0;background:var(--ind-l)}
+.urlbox .u{flex:1;min-width:0;font:12.5px var(--mono);color:var(--ind-dd);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}
+.urlbox button{flex:none;color:var(--ind);font-weight:600;font-size:13px}
+.qr{width:200px;height:200px;margin:0 auto;border-radius:14px;border:1px solid var(--line);background:#fff;display:block;object-fit:contain;padding:8px}
+.editor textarea{width:100%;height:46dvh;font:12.5px/1.55 var(--mono);background:#0f1530;color:#dbe2ff;border:1px solid var(--line2);border-radius:13px;padding:12px;resize:vertical;tab-size:2;white-space:pre;overflow:auto}
+.editor .prev iframe{height:44dvh}
+.row2{display:flex;gap:10px}.row2>*{flex:1}
+.toast{position:fixed;left:50%;bottom:calc(var(--sb) + 20px);transform:translateX(-50%) translateY(14px);background:var(--ink);color:#fff;font-weight:600;font-size:14px;padding:11px 20px;border-radius:13px;box-shadow:0 12px 34px rgba(16,22,51,.3);opacity:0;pointer-events:none;transition:.35s var(--ease);z-index:80;max-width:88vw;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.seg{display:flex;padding:3px;border-radius:12px;background:var(--ind-l);gap:3px;margin-bottom:10px}
+.seg button{flex:1;height:36px;border-radius:9px;color:var(--dim);font-size:13px;font-weight:600;transition:.2s}
+.seg button.on{background:#fff;color:var(--ind);box-shadow:0 2px 6px rgba(79,70,229,.14)}
+.sec{font-size:11px;color:var(--mute);text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin:18px 2px 8px}
+footer{text-align:center;color:var(--mute);font-size:12px;padding:16px;line-height:1.6}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <div class="brand"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c3.2 3 3.2 14 0 17M12 3.5c-3.2 3-3.2 14 0 17"/></svg></span>Site<b>.hub</b></div>
+    <div class="sp"></div>
+    <button class="ibtn" id="btnRefresh" aria-label="Обновить" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4.5V11h-6.5"/></svg></button>
+    <button class="ubtn" id="btnUser" hidden></button>
+  </div>
+</header>
+
+<div class="wrap" id="app"></div>
+<footer>Site.hub публикует сайты на бесплатный хостинг GitHub Pages. Файлы и ключ хранятся только в этом браузере.</footer>
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+'use strict';
+const $=(s,c=document)=>c.querySelector(s), $$=(s,c=document)=>[...c.querySelectorAll(s)];
+const enc=new TextEncoder();
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const esa=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); // for attrs
+const fmtBytes=b=>b<1024?b+' Б':b<1048576?(b/1024).toFixed(1)+' КБ':(b/1048576).toFixed(2)+' МБ';
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const extOf=n=>{const m=String(n).match(/\.([a-z0-9]+)$/i);return m?m[1].toLowerCase():'';};
+function u8ToB64(u8){let s='';const ch=0x8000;for(let i=0;i<u8.length;i+=ch)s+=String.fromCharCode.apply(null,u8.subarray(i,i+ch));return btoa(s);}
+function b64ToU8(b){const bin=atob(b.replace(/\s/g,''));const a=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);return a;}
+const b64utf8=s=>u8ToB64(enc.encode(s));
+const utf8b64=b=>new TextDecoder().decode(b64ToU8(b));
+function toast(m,ms=2600){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),ms);}
+async function pool(items,n,fn){let i=0;await Promise.all(Array.from({length:Math.min(n,items.length)},async()=>{while(i<items.length)await fn(items[i++]);}));}
+function slug(s){return String(s).toLowerCase().trim().replace(/[^a-z0-9-]+/g,'-').replace(/^-+|-+$/g,'').replace(/-{2,}/g,'-').slice(0,60)||'site';}
+async function copy(t){try{await navigator.clipboard.writeText(t);return true;}catch{const x=document.createElement('textarea');x.value=t;document.body.append(x);x.select();const o=document.execCommand('copy');x.remove();return o;}}
+const qrImg=u=>`https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=1&data=${encodeURIComponent(u)}`;
+
+/* ===== GitHub API ===== */
+const TOK_KEY='sitehub_token';
+let TOKEN='', ME=null, SITES=[];
+async function gh(path,opts={}){
+  const r=await fetch('https://api.github.com'+path,{...opts,headers:{'Authorization':'Bearer '+TOKEN,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28',...(opts.headers||{})}});
+  let j=null;const txt=await r.text();if(txt){try{j=JSON.parse(txt);}catch{}}
+  if(!r.ok){const e=new Error((j&&j.message)||('HTTP '+r.status));e.status=r.status;e.data=j;throw e;}
+  return j;
+}
+const liveUrl=(login,repo)=> repo.toLowerCase()===login.toLowerCase()+'.github.io' ? `https://${login}.github.io/` : `https://${login}.github.io/${repo}/`;
+
+async function createRepo(name){
+  try{ return await gh('/user/repos',{method:'POST',body:JSON.stringify({name,private:false,auto_init:true,description:'Сайт на Site.hub',homepage:''})}); }
+  catch(e){ if(e.status===422) return await gh(`/repos/${ME.login}/${name}`); throw e; }
+}
+async function pushFiles(owner,repo,branch,files,onProg){
+  branch=branch||'main';
+  let parents=[],baseTree;
+  for(let i=0;i<5;i++){ try{ const ref=await gh(`/repos/${owner}/${repo}/git/ref/heads/${branch}`); const cm=await gh(`/repos/${owner}/${repo}/git/commits/${ref.object.sha}`); parents=[ref.object.sha]; baseTree=cm.tree.sha; break; }catch(e){ if(e.status===404||e.status===409||/empty/i.test(e.message||'')){await sleep(1500);continue;} throw e; } }
+  let done=0;const tree=[];
+  await pool(files,5,async f=>{ const content=typeof f.data==='string'?b64utf8(f.data):u8ToB64(f.data); const b=await gh(`/repos/${owner}/${repo}/git/blobs`,{method:'POST',body:JSON.stringify({content,encoding:'base64'})}); tree.push({path:f.path,mode:'100644',type:'blob',sha:b.sha}); done++; onProg&&onProg(done,files.length); });
+  const body={tree};if(baseTree)body.base_tree=baseTree;
+  const t=await gh(`/repos/${owner}/${repo}/git/trees`,{method:'POST',body:JSON.stringify(body)});
+  const commit=await gh(`/repos/${owner}/${repo}/git/commits`,{method:'POST',body:JSON.stringify({message:'Site.hub update',tree:t.sha,parents})});
+  if(parents.length) await gh(`/repos/${owner}/${repo}/git/refs/heads/${branch}`,{method:'PATCH',body:JSON.stringify({sha:commit.sha,force:true})});
+  else await gh(`/repos/${owner}/${repo}/git/refs`,{method:'POST',body:JSON.stringify({ref:'refs/heads/'+branch,sha:commit.sha})});
+  return commit.sha;
+}
+async function enablePages(owner,repo){
+  try{ await gh(`/repos/${owner}/${repo}/pages`,{method:'POST',body:JSON.stringify({source:{branch:'main',path:'/'}})}); }
+  catch(e){ if(e.status===409||e.status===422||/already/i.test(e.message||'')) return; throw e; }
+}
+async function getPages(owner,repo){ try{ return await gh(`/repos/${owner}/${repo}/pages`); }catch(e){ if(e.status===404) return null; throw e; } }
+async function markSite(owner,repo,url){ try{ await gh(`/repos/${owner}/${repo}/topics`,{method:'PUT',body:JSON.stringify({names:['sitehub','website']})}); }catch{} try{ await gh(`/repos/${owner}/${repo}`,{method:'PATCH',body:JSON.stringify({homepage:url})}); }catch{} }
+/* Contents API (single file) */
+const getFile=(o,r,p)=>gh(`/repos/${o}/${r}/contents/${encodeURIComponent(p).replace(/%2F/g,'/')}?ref=main`);
+const putFile=(o,r,p,content,sha)=>gh(`/repos/${o}/${r}/contents/${encodeURIComponent(p).replace(/%2F/g,'/')}`,{method:'PUT',body:JSON.stringify({message:'Site.hub: '+(sha?'изменён ':'добавлен ')+p,content:b64utf8(content),sha,branch:'main'})});
+const delFile=(o,r,p,sha)=>gh(`/repos/${o}/${r}/contents/${encodeURIComponent(p).replace(/%2F/g,'/')}`,{method:'DELETE',body:JSON.stringify({message:'Site.hub: удалён '+p,sha,branch:'main'})});
+async function listTree(o,r){ try{ const t=await gh(`/repos/${o}/${r}/git/trees/main?recursive=1`); return (t.tree||[]).filter(x=>x.type==='blob').map(x=>({path:x.path,size:x.size,sha:x.sha})); }catch{ return []; } }
+
+/* ===== шаблоны сайтов ===== */
+function pageHtml(title,body,extraCss){
+  return `<!DOCTYPE html>\n<html lang="ru">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n<title>${esc(title)}</title>\n<style>\n*{box-sizing:border-box;margin:0;padding:0}\nbody{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.6;color:#1a1a2e;background:#fff}\na{color:inherit}\n${extraCss||''}\n</style>\n</head>\n<body>\n${body}\n</body>\n</html>\n`;
+}
+function tplLanding(o){
+  const a=o.accent||'#4f46e5';
+  const body=`<header style="min-height:84vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 24px;background:radial-gradient(70% 60% at 50% 0%, ${a}22, transparent), #0b0f1e;color:#fff">
+  <div style="max-width:720px">
+    <div style="display:inline-block;padding:6px 14px;border:1px solid rgba(255,255,255,.2);border-radius:99px;font-size:13px;opacity:.85;margin-bottom:22px">${esc(o.badge||'Добро пожаловать')}</div>
+    <h1 style="font-size:clamp(34px,8vw,60px);line-height:1.1;font-weight:800;letter-spacing:-.02em">${esc(o.title)}</h1>
+    <p style="font-size:clamp(16px,4vw,21px);opacity:.8;margin:20px auto 32px;max-width:560px">${esc(o.subtitle)}</p>
+    <a href="${esa(o.btnUrl||'#about')}" style="display:inline-block;background:${a};color:#fff;font-weight:700;padding:15px 34px;border-radius:14px;text-decoration:none;box-shadow:0 12px 30px ${a}55">${esc(o.btnText||'Начать')}</a>
+  </div>
+</header>
+<section id="about" style="max-width:960px;margin:0 auto;padding:70px 24px">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px">
+    ${(o.features||['Быстро','Красиво','Бесплатно']).map((f,i)=>`<div style="padding:26px;border:1px solid #eee;border-radius:18px;background:#fafaff"><div style="width:44px;height:44px;border-radius:12px;background:${a}18;color:${a};display:grid;place-items:center;font-weight:800;font-size:18px;margin-bottom:14px">${i+1}</div><h3 style="font-size:19px;margin-bottom:8px">${esc(typeof f==='string'?f:f.t)}</h3><p style="color:#666;font-size:15px">${esc(typeof f==='string'?'Короткое описание преимущества вашего продукта.':f.d)}</p></div>`).join('')}
+  </div>
+</section>
+<footer style="text-align:center;padding:40px 24px;color:#999;font-size:14px;border-top:1px solid #eee">© ${new Date().getFullYear()} ${esc(o.title)} · сделано на Site.hub</footer>`;
+  return pageHtml(o.title,body);
+}
+function tplLink(o){
+  const a=o.accent||'#4f46e5';
+  const links=(o.links&&o.links.length?o.links:[{t:'Instagram',u:'#'},{t:'Telegram',u:'#'},{t:'Сайт',u:'#'}]);
+  const body=`<main style="min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:60px 22px;background:linear-gradient(170deg, ${a}15, #f6f7fb 60%)">
+  <div style="width:96px;height:96px;border-radius:50%;background:${a};color:#fff;display:grid;place-items:center;font-size:40px;font-weight:800;box-shadow:0 14px 30px ${a}44">${esc((o.title||'A').trim()[0]||'A').toUpperCase()}</div>
+  <h1 style="margin-top:18px;font-size:24px">${esc(o.title)}</h1>
+  <p style="color:#666;margin-top:6px;text-align:center;max-width:420px">${esc(o.subtitle)}</p>
+  <div style="width:100%;max-width:420px;margin-top:28px;display:flex;flex-direction:column;gap:12px">
+    ${links.map(l=>`<a href="${esa(l.u||'#')}" style="display:block;text-align:center;background:#fff;border:1.5px solid #e6e6ef;border-radius:14px;padding:16px;font-weight:650;text-decoration:none;transition:.15s">${esc(l.t)}</a>`).join('')}
+  </div>
+  <footer style="margin-top:auto;padding-top:40px;color:#aaa;font-size:13px">сделано на Site.hub</footer>
+</main>`;
+  return pageHtml(o.title,body);
+}
+function tplSoon(o){
+  const a=o.accent||'#4f46e5';
+  const body=`<main style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 24px;background:#07080f;color:#fff;position:relative;overflow:hidden">
+  <div style="position:absolute;width:420px;height:420px;border-radius:50%;background:${a};filter:blur(120px);opacity:.4;top:-120px"></div>
+  <div style="position:relative">
+    <div style="font-size:14px;letter-spacing:.3em;text-transform:uppercase;opacity:.7;margin-bottom:18px">Скоро</div>
+    <h1 style="font-size:clamp(36px,9vw,72px);font-weight:800;letter-spacing:-.02em;line-height:1.05">${esc(o.title)}</h1>
+    <p style="opacity:.75;margin:22px auto 0;max-width:460px;font-size:18px">${esc(o.subtitle)}</p>
+    <div style="margin-top:34px;display:inline-flex;gap:8px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:6px">
+      <input placeholder="ваш email" style="background:transparent;border:0;outline:0;color:#fff;padding:10px 14px;font-size:15px">
+      <a href="#" style="background:${a};color:#fff;text-decoration:none;font-weight:700;padding:10px 20px;border-radius:10px">Сообщить</a>
+    </div>
+  </div>
+  <footer style="position:absolute;bottom:24px;opacity:.5;font-size:13px">сделано на Site.hub</footer>
+</main>`;
+  return pageHtml(o.title,body);
+}
+function tpl404(title){ return pageHtml('404',`<main style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px;font-family:sans-serif"><h1 style="font-size:84px;margin:0;color:#4f46e5">404</h1><p style="color:#666;font-size:18px">Страница не найдена</p><a href="./" style="margin-top:20px;color:#4f46e5;font-weight:600">На главную →</a></main>`); }
+const TEMPLATES={
+  landing:{name:'Лендинг',fields:['title','subtitle','accent'],def:{title:'Мой проект',subtitle:'Короткое описание того, что вы делаете. Этот текст можно изменить.',accent:'#4f46e5'},gen:tplLanding},
+  link:{name:'Визитка / ссылки',fields:['title','subtitle','accent','links'],def:{title:'Моё имя',subtitle:'Пара слов о себе',accent:'#4f46e5',links:[{t:'Telegram',u:'https://t.me/'},{t:'Instagram',u:'#'},{t:'Почта',u:'mailto:me@example.com'}]},gen:tplLink},
+  soon:{name:'Скоро открытие',fields:['title','subtitle','accent'],def:{title:'Скоро здесь будет сайт',subtitle:'Мы готовим что-то интересное. Оставьте почту, чтобы узнать первыми.',accent:'#4f46e5'},gen:tplSoon},
+};
+function buildTemplateFiles(key,o){ const t=TEMPLATES[key]; return [{path:'index.html',data:t.gen(o)},{path:'404.html',data:tpl404(o.title)}]; }
+
+/* ===== sheets ===== */
+let sheetStack=[], curSheet=null;
+function sheet(title,bodyEl,opts={}){
+  const prev=sheetStack[sheetStack.length-1];
+  if(prev){ prev.sh.classList.add('stacked'); prev.bg.classList.add('hidebg'); }
+  const bg=document.createElement('div');bg.className='sheet-bg';
+  const sh=document.createElement('div');sh.className='sheet';
+  sh.innerHTML=`<div class="grab"></div><div class="sh-head"><h3>${esc(title)}</h3><button class="ibtn" data-close><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div><div class="sh-body"></div>`;
+  $('.sh-body',sh).append(bodyEl);
+  document.body.append(bg,sh); void sh.offsetHeight; bg.classList.add('show'); sh.classList.add('show');
+  const me={sh,bg,close(fast){ if(me.closed)return; me.closed=true; bg.classList.remove('show'); sh.classList.remove('show'); setTimeout(()=>{bg.remove();sh.remove();},fast?0:460); sheetStack=sheetStack.filter(x=>x!==me); const p=sheetStack[sheetStack.length-1]; if(p){ p.sh.classList.remove('stacked'); p.bg.classList.remove('hidebg'); } curSheet=p||null; opts.onClose&&opts.onClose(); }};
+  bg.onclick=()=>me.close(); $('[data-close]',sh).onclick=()=>me.close();
+  sheetStack.push(me); curSheet=me; return me;
+}
+const el=h=>{const t=document.createElement('template');t.innerHTML=h.trim();return t.content.firstElementChild;};
+
+/* ===== токен / вход ===== */
+function renderConnect(){
+  $('#app').innerHTML=`<div class="hero">
+    <div class="hi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c3.2 3 3.2 14 0 17M12 3.5c-3.2 3-3.2 14 0 17"/></svg></div>
+    <h1>Хостинг сайтов через GitHub</h1>
+    <p>Создавай и публикуй сайты из шаблонов или своих HTML-файлов. Публикация — на бесплатный GitHub Pages. Несколько сайтов, встроенный редактор, живые ссылки и QR.</p>
+  </div>
+  <div class="card" style="max-width:460px;margin:0 auto">
+    <label class="fld">Ключ доступа GitHub (token)</label>
+    <div class="row2" style="gap:8px">
+      <input type="password" id="tok" class="mono" placeholder="ghp_… или github_pat_…" autocomplete="off" autocapitalize="off" spellcheck="false">
+      <button class="btn ghost sm" id="tokEye" style="flex:none;width:46px" aria-label="показать">👁</button>
+    </div>
+    <div class="hint">Нет ключа? <a href="https://github.com/settings/tokens/new?scopes=repo,delete_repo,workflow&description=Site.hub" target="_blank" rel="noopener">Создать за 20 секунд</a> → пролистай вниз, нажми <b>Generate token</b>, скопируй и вставь сюда. Галочки repo и delete_repo уже отмечены.</div>
+    <label style="display:flex;align-items:center;gap:8px;margin-top:12px;font-size:13px;color:var(--dim)"><input type="checkbox" id="rem" checked style="width:18px;height:18px;accent-color:var(--ind)"> Запомнить ключ в этом браузере</label>
+    <button class="btn block big" id="connect" style="margin-top:14px"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-3.2 19.5c.5.1.7-.2.7-.5v-1.7c-2.8.6-3.4-1.4-3.4-1.4-.5-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.3 1.1 2.9.8.1-.6.3-1.1.6-1.3-2.2-.300-4.6-1.1-4.6-5a3.9 3.9 0 0 1 1-2.7c-.1-.3-.5-1.3.1-2.7 0 0 .8-.3 2.7 1a9.3 9.3 0 0 1 5 0c1.9-1.3 2.7-1 2.7-1 .6 1.4.2 2.4.1 2.7a3.9 3.9 0 0 1 1 2.7c0 3.9-2.3 4.7-4.6 5 .4.3.7.9.7 1.9v2.8c0 .3.2.6.7.5A10 10 0 0 0 12 2z"/></svg>Подключить GitHub</button>
+  </div>
+  <div class="note info" style="max-width:460px;margin:14px auto 0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.6V14M12 17.2v.3"/></svg><div>Ключ хранится только в этом браузере и отправляется только на github.com. Сайты будут публичными и бесплатными.</div></div>`;
+  $('#tokEye').onclick=()=>{const i=$('#tok');i.type=i.type==='password'?'text':'password';};
+  $('#connect').onclick=connect;
+  $('#tok').addEventListener('keydown',e=>{if(e.key==='Enter')connect();});
+  try{const t=localStorage.getItem(TOK_KEY);if(t)$('#tok').value=t;}catch{}
+}
+async function connect(){
+  const tok=$('#tok').value.trim();
+  if(tok.length<20){toast('Вставьте ключ доступа GitHub');return;}
+  const btn=$('#connect'),old=btn.innerHTML;btn.disabled=true;btn.innerHTML='<span class="spin w"></span> Подключаюсь…';
+  TOKEN=tok;
+  try{
+    ME=await gh('/user');
+    if($('#rem')?.checked){try{localStorage.setItem(TOK_KEY,tok);}catch{}}
+    await renderDashboard();
+  }catch(e){
+    btn.disabled=false;btn.innerHTML=old;
+    let m=e.message; if(e.status===401)m='Ключ недействителен. Создайте новый с галочками repo и delete_repo.'; else if(/failed to fetch|load failed|networkerror/i.test(e.message))m='Не удалось связаться с GitHub. Проверьте интернет.';
+    toast(m,4000);
+  }
+}
+function userChip(){
+  const b=$('#btnUser'); b.hidden=false; $('#btnRefresh').hidden=false;
+  b.innerHTML=`<img src="${esa(ME.avatar_url||'')}" alt="" onerror="this.style.display='none'"> ${esc(ME.login)}`;
+  b.onclick=()=>{
+    const bd=el('<div></div>');
+    bd.innerHTML=`<div class="note info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/></svg><div>Вы вошли как <b>@${esc(ME.login)}</b>. Сайты создаются в вашем аккаунте GitHub.</div></div>
+    <button class="btn danger block" id="logout" style="margin-top:14px">Выйти и забыть ключ</button>`;
+    const s=sheet('Аккаунт',bd);
+    $('#logout',bd).onclick=()=>{try{localStorage.removeItem(TOK_KEY);}catch{}location.reload();};
+  };
+}
+
+/* ===== панель ===== */
+async function renderDashboard(){
+  userChip();
+  $('#app').innerHTML=`
+    <div class="dhead"><div><h2>Мои сайты</h2><div class="cnt" id="siteCnt">загрузка…</div></div></div>
+    <button class="newsite" id="newSite"><span class="pl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span><span class="t"><b>Создать сайт</b><span>из шаблона, из файлов или вставить код</span></span><span class="ar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></span></button>
+    <div class="grid" id="grid"><div class="empty"><span class="spin" style="margin:0 auto 10px"></span>Загружаю ваши сайты…</div></div>`;
+  $('#newSite').onclick=openCreate;
+  $('#btnRefresh').onclick=loadSites;
+  await loadSites();
+}
+async function loadSites(){
+  const grid=$('#grid'); if(grid)grid.innerHTML=`<div class="empty"><span class="spin" style="margin:0 auto 10px"></span>Загружаю…</div>`;
+  try{
+    const repos=await gh('/user/repos?per_page=100&sort=updated&affiliation=owner');
+    SITES=(repos||[]).filter(r=>!r.archived && ((r.topics||[]).includes('sitehub') || (r.homepage||'').includes('github.io')));
+    renderSites();
+    // подтягиваем статусы Pages в фоне
+    pool(SITES,5,async s=>{ try{ const p=await getPages(ME.login,s.name); s._pages=p||null; s._live=(p&&p.html_url)||s.homepage||liveUrl(ME.login,s.name); renderSites(); }catch{} });
+  }catch(e){ if(grid)grid.innerHTML=`<div class="empty">Не удалось загрузить: ${esc(e.message)}</div>`; }
+}
+function renderSites(){
+  const grid=$('#grid'); if(!grid)return;
+  $('#siteCnt').textContent=SITES.length?SITES.length+' сайт(ов)':'пока нет сайтов';
+  if(!SITES.length){ grid.innerHTML=`<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg>У вас пока нет сайтов.<br>Нажмите «Создать сайт», чтобы опубликовать первый.</div>`; return; }
+  grid.innerHTML=SITES.map((s,i)=>{
+    const live=s._live||s.homepage||liveUrl(ME.login,s.name);
+    const building=s._pages&&s._pages.status&&s._pages.status!=='built';
+    const shortUrl=live.replace(/^https?:\/\//,'').replace(/\/$/,'');
+    return `<div class="site" style="animation-delay:${Math.min(i*40,300)}ms" data-repo="${esa(s.name)}">
+      <div class="thumb">${live?`<iframe src="${esa(live)}" loading="lazy" sandbox="allow-scripts" title=""></iframe>`:`<div class="ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></svg></div>`}
+        <div class="st ${building?'build':''}"><span class="dot"></span>${building?'публикуется':'онлайн'}</div></div>
+      <div class="body">
+        <div class="nm">${esc(s.name)}</div>
+        <div class="url">${esc(shortUrl)}</div>
+        <div class="acts">
+          <a class="btn sm block" href="${esa(live)}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg>Открыть</a>
+          <button class="btn ghost sm block" data-manage="${esa(s.name)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L18 10l-4-4L4 16z"/></svg>Управлять</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  $$('[data-manage]',grid).forEach(b=>b.onclick=()=>manageSite(SITES.find(x=>x.name===b.dataset.manage)));
+}
+
+/* ===== создание сайта ===== */
+function openCreate(){
+  const bd=el('<div></div>');
+  bd.innerHTML=`
+    <label class="fld">Название сайта (и адрес)</label>
+    <input type="text" id="cName" value="Мой сайт" maxlength="50" autocomplete="off">
+    <div class="hint" id="cUrl"></div>
+    <div class="tabs" id="cTabs" style="margin-top:14px">
+      <button class="on" data-t="tpl">Шаблон</button>
+      <button data-t="up">Загрузить</button>
+      <button data-t="paste">Вставить код</button>
+    </div>
+    <div class="pane on" id="p-tpl">
+      <div class="tpl-grid" id="tplGrid"></div>
+      <div id="tplCust"></div>
+      <div class="prev" id="tplPrev"><iframe title=""></iframe></div>
+    </div>
+    <div class="pane" id="p-up">
+      <div class="drop" id="cDrop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V9M7 14l5-5 5 5M5 4h14"/></svg><b>Выбрать файлы сайта</b><span>HTML, CSS, JS, картинки — или папку целиком</span></div>
+      <div class="row2" style="margin-top:8px"><button class="btn ghost sm" id="cFiles">Файлы</button><button class="btn ghost sm" id="cFolder">Папка</button></div>
+      <input type="file" id="cFileI" multiple hidden><input type="file" id="cFolderI" webkitdirectory hidden>
+      <div class="flist" id="cFlist"></div>
+      <div class="hint">Нужна хотя бы одна страница. Если нет файла index.html — стартовой станет первый HTML.</div>
+    </div>
+    <div class="pane" id="p-paste">
+      <label class="fld">HTML-код страницы</label>
+      <textarea id="cPaste" class="mono" style="min-height:200px" placeholder="&lt;!DOCTYPE html&gt;&#10;&lt;html&gt;…&lt;/html&gt;"></textarea>
+    </div>
+    <button class="btn block big" id="cGo" style="margin-top:16px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Опубликовать сайт</button>`;
+  const S=sheet('Новый сайт',bd);
+  // state
+  const st={tab:'tpl',tplKey:'landing',cust:{},files:[],entry:''};
+  const nameI=$('#cName',bd), urlHint=$('#cUrl',bd);
+  function upName(){ const rn=slug(nameI.value); urlHint.innerHTML=`Адрес: <b class="mono">${esc(ME.login)}.github.io/${esc(rn||'site')}/</b>`; }
+  nameI.addEventListener('input',upName); upName();
+  // tabs
+  $('#cTabs',bd).onclick=e=>{const b=e.target.closest('button');if(!b)return;st.tab=b.dataset.t;[...$('#cTabs',bd).children].forEach(x=>x.classList.toggle('on',x===b));['tpl','up','paste'].forEach(t=>$('#p-'+t,bd).classList.toggle('on',t===st.tab));};
+  // templates
+  const tg=$('#tplGrid',bd);
+  tg.innerHTML=Object.entries(TEMPLATES).map(([k,t])=>`<div class="tpl${k==='landing'?' on':''}" data-k="${k}"><div class="pv"><iframe title="" sandbox=""></iframe></div><div class="lb">${esc(t.name)}</div></div>`).join('');
+  Object.keys(TEMPLATES).forEach(k=>{ const o=Object.assign({},TEMPLATES[k].def); $(`.tpl[data-k="${k}"] iframe`,bd).srcdoc=TEMPLATES[k].gen(o); });
+  function pickTpl(k){ st.tplKey=k; $$('.tpl',bd).forEach(x=>x.classList.toggle('on',x.dataset.k===k)); st.cust=Object.assign({},TEMPLATES[k].def); renderCust(); }
+  tg.onclick=e=>{const d=e.target.closest('.tpl');if(d)pickTpl(d.dataset.k);};
+  function renderCust(){
+    const t=TEMPLATES[st.tplKey],o=st.cust,box=$('#tplCust',bd);
+    let h='';
+    h+=`<label class="fld">Заголовок</label><input type="text" id="f-title" value="${esa(o.title)}">`;
+    h+=`<label class="fld">Подзаголовок</label><input type="text" id="f-subtitle" value="${esa(o.subtitle)}">`;
+    if(t.fields.includes('accent')) h+=`<label class="fld">Цвет</label><input type="color" id="f-accent" value="${esa(o.accent)}" style="width:56px;height:44px;padding:3px;border-radius:12px;border:1.5px solid var(--line2)">`;
+    if(t.fields.includes('links')){ h+=`<label class="fld">Ссылки (название и адрес)</label><div id="f-links"></div><button class="btn ghost sm" id="addLink" style="margin-top:6px">+ ссылка</button>`; }
+    box.innerHTML=h;
+    const upd=()=>{ o.title=$('#f-title',bd).value; o.subtitle=$('#f-subtitle',bd).value; if($('#f-accent',bd))o.accent=$('#f-accent',bd).value; if(t.fields.includes('links')) o.links=[...$('#f-links',bd).children].map(r=>({t:$('.lt',r).value,u:$('.lu',r).value})); prev(); };
+    box.addEventListener('input',upd);
+    if(t.fields.includes('links')){
+      const lb=$('#f-links',bd);
+      const addRow=(l={t:'',u:''})=>{ const r=el(`<div class="row2" style="margin-bottom:6px"><input class="lt" placeholder="Название" value="${esa(l.t)}"><input class="lu" placeholder="https://" value="${esa(l.u)}"><button class="ibtn" style="flex:none;width:44px" aria-label="убрать"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>`); $('button',r).onclick=()=>{r.remove();upd();}; lb.append(r); };
+      (o.links||[]).forEach(addRow);
+      $('#addLink',bd).onclick=()=>{addRow();};
+    }
+    prev();
+  }
+  function prev(){ try{ $('#tplPrev iframe',bd).srcdoc=TEMPLATES[st.tplKey].gen(st.cust); }catch{} }
+  pickTpl('landing');
+  // upload
+  const addFiles=async(list)=>{ const arr=[...list].filter(f=>f.size!=null); const metas=arr.map(f=>({f,rel:(f.webkitRelativePath||f.name).replace(/\\/g,'/').replace(/^\/+/,'')})); const pre=(function(p){if(p.length<2)return'';const sg=p.map(x=>x.split('/'));const f=sg[0];let i=0;for(;i<f.length-1;i++){if(!sg.every(s=>s[i]===f[i]))break;}return i>0?f.slice(0,i).join('/')+'/':'';})(metas.map(m=>m.rel));
+    for(const m of metas){ let rel=(m.rel.slice(pre.length)||m.f.name).replace(/[^\w./ -]/g,'_'); if(m.f.size>25*1048576){toast('Файл >25МБ пропущен: '+rel);continue;} if(/(^|\/)(node_modules|\.git)(\/|$)/.test(rel))continue; const buf=new Uint8Array(await m.f.arrayBuffer()); const i=st.files.findIndex(x=>x.path===rel); const rec={path:rel,data:buf,size:m.f.size,html:/\.html?$/i.test(rel)}; if(i>=0)st.files[i]=rec;else st.files.push(rec); }
+    renderUp(); };
+  function renderUp(){ const fl=$('#cFlist',bd); fl.innerHTML=st.files.map(f=>`<div class="frow"><span class="ic">${esc(extOf(f.path)||'?')}</span><span class="nm">${esc(f.path)}</span><span class="sz">${fmtBytes(f.size)}</span><button class="x" data-del="${esa(f.path)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>`).join(''); $$('[data-del]',fl).forEach(b=>b.onclick=()=>{st.files=st.files.filter(x=>x.path!==b.dataset.del);renderUp();}); }
+  $('#cFiles',bd).onclick=()=>$('#cFileI',bd).click();
+  $('#cFolder',bd).onclick=()=>$('#cFolderI',bd).click();
+  $('#cDrop',bd).onclick=()=>$('#cFileI',bd).click();
+  $('#cFileI',bd).onchange=e=>{addFiles(e.target.files);e.target.value='';};
+  $('#cFolderI',bd).onchange=e=>{addFiles(e.target.files);e.target.value='';};
+  ['dragenter','dragover'].forEach(ev=>$('#cDrop',bd).addEventListener(ev,e=>{e.preventDefault();$('#cDrop',bd).classList.add('over');}));
+  ['dragleave','drop'].forEach(ev=>$('#cDrop',bd).addEventListener(ev,e=>{e.preventDefault();$('#cDrop',bd).classList.remove('over');}));
+  $('#cDrop',bd).addEventListener('drop',e=>{if(e.dataTransfer?.files?.length)addFiles(e.dataTransfer.files);});
+  // go
+  $('#cGo',bd).onclick=async()=>{
+    const rn=slug(nameI.value);
+    let files;
+    if(st.tab==='tpl'){ files=buildTemplateFiles(st.tplKey,st.cust); }
+    else if(st.tab==='up'){
+      if(!st.files.length)return toast('Добавьте файлы сайта');
+      files=st.files.map(f=>({path:f.path,data:f.data}));
+      if(!files.some(f=>/^index\.html?$/i.test(f.path))){ const firstHtml=st.files.find(f=>f.html); if(firstHtml){ files.push({path:'index.html',data:firstHtml.data}); } else return toast('Нужен хотя бы один HTML-файл'); }
+    } else {
+      const code=$('#cPaste',bd).value.trim(); if(code.length<10)return toast('Вставьте HTML-код');
+      files=[{path:'index.html',data:/<html/i.test(code)?code:pageHtml(nameI.value,code)}];
+    }
+    S.close(); publishSite(nameI.value,rn,files);
+  };
+}
+async function publishSite(title,repoName,files){
+  const bd=el('<div></div>');
+  bd.innerHTML=`<div class="steps-run" id="rs"></div><div id="rout"></div>`;
+  const S=sheet('Публикация сайта',bd,{});
+  const STEPS=[['repo','Создание репозитория'],['push','Загрузка файлов'],['pages','Включение хостинга'],['live','Сайт в сети']];
+  const cur={},extra={};
+  const draw=()=>{ $('#rs',bd).innerHTML=STEPS.map(([k,l])=>{ const s=cur[k]||''; const ic=s==='done'?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>':s==='on'?'<span class="spin"></span>':s==='err'?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 6l12 12M18 6L6 18"/></svg>':''; return `<div class="srun ${s}"><span class="si">${ic}</span><span class="sx">${l}${extra[k]?`<small>${esc(extra[k])}</small>`:''}</span></div>`; }).join(''); };
+  cur.repo='on';draw();
+  try{
+    const repo=await createRepo(repoName); const branch=repo.default_branch||'main';
+    cur.repo='done';extra.repo=repo.full_name;cur.push='on';draw();
+    await pushFiles(ME.login,repoName,branch,files,(d,t)=>{extra.push=d+' / '+t;draw();});
+    cur.push='done';extra.push=files.length+' файлов';cur.pages='on';draw();
+    await enablePages(ME.login,repoName);
+    const live=liveUrl(ME.login,repoName);
+    await markSite(ME.login,repoName,live);
+    cur.pages='done';cur.live='on';draw();
+    // ждём, пока Pages соберётся (несколько проверок)
+    let ready=false;
+    for(let i=0;i<8;i++){ await sleep(4000); try{ const p=await getPages(ME.login,repoName); if(p&&(p.status==='built'||p.html_url)){ ready=true; if(i>=2)break; } }catch{} if(i>=3&&ready)break; }
+    cur.live='done';draw();
+    siteReady(S,bd,title,repoName,live);
+    loadSites();
+  }catch(e){
+    const w=Object.keys(cur).find(k=>cur[k]==='on'); if(w){cur[w]='err';draw();}
+    let m=e.message; if(/delete_repo|workflow|scope|permission/i.test(e.message)&&e.status===403)m='У ключа не хватает прав. Создайте ключ с галочками repo и delete_repo.';
+    $('#rout',bd).innerHTML=`<div class="note warn" style="margin-top:10px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5l9.5 17h-19z"/><path d="M12 10v4.5M12 17.5v.5"/></svg><div>${esc(m)}</div></div><button class="btn ghost block" id="rt" style="margin-top:12px">Закрыть</button>`;
+    $('#rt',bd).onclick=()=>S.close();
+  }
+}
+function siteReady(S,bd,title,repoName,live){
+  $('#rs',bd).style.display='none';
+  $('#rout',bd).innerHTML=`<div class="livebox">
+    <div class="big-ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+    <h3>Сайт опубликован!</h3>
+    <p style="color:var(--dim);font-size:13.5px;margin:0">Первая публикация может занять до 1–2 минут.</p>
+    <div class="urlbox"><span class="u">${esc(live.replace(/^https?:\/\//,''))}</span><button data-copy>Копир.</button></div>
+    <img class="qr" src="${esa(qrImg(live))}" alt="QR" onerror="this.style.display='none'">
+    <p style="color:var(--mute);font-size:12px;margin-top:8px">Наведи камеру телефона на QR, чтобы открыть сайт</p>
+    <div class="row2" style="margin-top:16px">
+      <a class="btn ok block" href="${esa(live)}" target="_blank" rel="noopener">Открыть сайт</a>
+      <button class="btn ghost block" data-manage>Управлять</button>
+    </div>
+  </div>`;
+  $('[data-copy]',bd).onclick=async()=>{await copy(live);toast('Ссылка скопирована');};
+  $('[data-manage]',bd).onclick=()=>{S.close();setTimeout(()=>loadSites().then(()=>{const s=SITES.find(x=>x.name===repoName);if(s)manageSite(s);}),200);};
+}
+
+/* ===== управление сайтом ===== */
+function manageSite(s){
+  if(!s)return;
+  const live=s._live||s.homepage||liveUrl(ME.login,s.name);
+  const bd=el('<div></div>');
+  bd.innerHTML=`
+    <div class="urlbox"><span class="u">${esc(live.replace(/^https?:\/\//,''))}</span><button data-copy>Копир.</button></div>
+    <div class="row2"><a class="btn block" href="${esa(live)}" target="_blank" rel="noopener">Открыть</a><button class="btn ghost block" data-qr>Показать QR</button></div>
+    <div id="qrBox"></div>
+    <div class="sec">Файлы сайта</div>
+    <div class="row2" style="margin-bottom:8px"><button class="btn ghost sm" data-add>+ файл</button><button class="btn ghost sm" data-upload>Загрузить файлы</button></div>
+    <div class="flist" id="mFiles"><div style="color:var(--mute);font-size:13px;padding:10px">Загружаю…</div></div>
+    <input type="file" id="mUpI" multiple hidden>
+    <div class="sec">Настройки</div>
+    <label class="fld">Свой домен (необязательно)</label>
+    <div class="row2"><input type="text" id="mDomain" class="mono" placeholder="example.com" value="${esa((s._pages&&s._pages.cname)||'')}"><button class="btn ghost sm" data-domain style="flex:none">Привязать</button></div>
+    <div class="hint">Для своего домена нужно в настройках домена указать запись на GitHub. Можно оставить бесплатный адрес github.io.</div>
+    <button class="btn ghost block" data-rebuild style="margin-top:12px">Пересобрать сайт</button>
+    <button class="btn danger block" data-del style="margin-top:10px">Удалить сайт</button>`;
+  const S=sheet(s.name,bd);
+  $('[data-copy]',bd).onclick=async()=>{await copy(live);toast('Скопировано');};
+  $('[data-qr]',bd).onclick=()=>{ const q=$('#qrBox',bd); if(q.innerHTML){q.innerHTML='';return;} q.innerHTML=`<img class="qr" src="${esa(qrImg(live))}" alt="QR" onerror="this.replaceWith(document.createTextNode('QR недоступен'))" style="margin-top:12px">`; };
+  // files
+  async function loadFiles(){ const box=$('#mFiles',bd); const files=await listTree(ME.login,s.name); if(!files.length){box.innerHTML='<div style="color:var(--mute);font-size:13px;padding:10px">Файлов нет</div>';return;}
+    box.innerHTML=files.map(f=>`<div class="frow file" data-file="${esa(f.path)}"><span class="ic">${esc(extOf(f.path)||'?')}</span><span class="nm">${esc(f.path)}</span><span class="sz">${fmtBytes(f.size||0)}</span></div>`).join('');
+    $$('[data-file]',box).forEach(b=>b.onclick=()=>editFile(s,b.dataset.file,loadFiles));
+  }
+  loadFiles();
+  $('[data-add]',bd).onclick=()=>{ const path=prompt('Имя нового файла (например about.html)'); if(!path)return; editFile(s,path.trim(),loadFiles,true); };
+  $('[data-upload]',bd).onclick=()=>$('#mUpI',bd).click();
+  $('#mUpI',bd).onchange=async e=>{ const fs=[...e.target.files]; e.target.value=''; if(!fs.length)return; toast('Загружаю '+fs.length+' файл(ов)…'); try{ const files=[]; for(const f of fs){ files.push({path:(f.webkitRelativePath||f.name).replace(/^\/+/,''),data:new Uint8Array(await f.arrayBuffer())}); } await pushFiles(ME.login,s.name,'main',files); toast('Загружено'); loadFiles(); }catch(err){toast('Ошибка: '+err.message);} };
+  $('[data-domain]',bd).onclick=async()=>{ const d=$('#mDomain',bd).value.trim(); try{ await gh(`/repos/${ME.login}/${s.name}/pages`,{method:'PUT',body:JSON.stringify({cname:d||null,source:{branch:'main',path:'/'}})}); if(d) await putFile(ME.login,s.name,'CNAME',d).catch(()=>{}); toast(d?'Домен привязан':'Домен убран'); }catch(e){toast('Ошибка домена: '+e.message);} };
+  $('[data-rebuild]',bd).onclick=async()=>{ try{ await gh(`/repos/${ME.login}/${s.name}/pages/builds`,{method:'POST'}); toast('Пересборка запущена'); }catch(e){toast('Не удалось: '+e.message);} };
+  $('[data-del]',bd).onclick=async()=>{ if(!confirm('Удалить сайт «'+s.name+'» навсегда? Это удалит репозиторий на GitHub.'))return; try{ await gh(`/repos/${ME.login}/${s.name}`,{method:'DELETE'}); toast('Сайт удалён'); S.close(); SITES=SITES.filter(x=>x!==s); renderSites(); }catch(e){ if(e.status===403)toast('У ключа нет права delete_repo — создайте ключ с этой галочкой',4000); else toast('Ошибка: '+e.message); } };
+}
+async function editFile(s,path,onSaved,isNew){
+  const bd=el('<div class="editor"></div>');
+  bd.innerHTML=`<div class="seg" id="eSeg"><button class="on" data-v="code">Код</button><button data-v="prev">Просмотр</button></div>
+    <div id="eWrap"><textarea id="eCode" spellcheck="false" autocapitalize="off"></textarea></div>
+    <div class="prev" id="ePrev" hidden><iframe title=""></iframe></div>
+    <button class="btn block" id="eSave" style="margin-top:12px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Сохранить и опубликовать</button>`;
+  const S=sheet((isNew?'Новый файл: ':'')+path,bd);
+  let sha=null; const ta=$('#eCode',bd);
+  if(!isNew){ ta.value='Загрузка…'; try{ const f=await getFile(ME.login,s.name,path); sha=f.sha; ta.value=f.encoding==='base64'?utf8b64(f.content):(f.content||''); }catch(e){ ta.value=''; toast('Не удалось открыть: '+e.message); } }
+  else ta.value='';
+  ta.addEventListener('keydown',e=>{ if(e.key==='Tab'){e.preventDefault();const p=ta.selectionStart;ta.setRangeText('  ',p,ta.selectionEnd,'end');} });
+  $('#eSeg',bd).onclick=e=>{const b=e.target.closest('button');if(!b)return;[...$('#eSeg',bd).children].forEach(x=>x.classList.toggle('on',x===b));const code=b.dataset.v==='code';$('#eWrap',bd).hidden=!code;$('#ePrev',bd).hidden=code;if(!code)$('#ePrev iframe',bd).srcdoc=ta.value;};
+  $('#eSave',bd).onclick=async()=>{ const btn=$('#eSave',bd),old=btn.innerHTML;btn.disabled=true;btn.innerHTML='<span class="spin w"></span> Сохраняю…'; try{ await putFile(ME.login,s.name,path,ta.value,sha||undefined); toast('Сохранено и публикуется'); S.close(); onSaved&&onSaved(); }catch(e){ btn.disabled=false;btn.innerHTML=old; toast('Ошибка: '+e.message); } };
+}
+
+/* ===== запуск ===== */
+(function init(){ renderConnect(); })();
+window.SITEHUB={gh:(...a)=>gh(...a),get ME(){return ME;},get SITES(){return SITES;},TEMPLATES,buildTemplateFiles};
+})();
+</script>
+</body>
+</html>
